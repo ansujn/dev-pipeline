@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DevPipeline v2 — 25 Skills | AI Trading Engine</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+:root{--bg:#0a0a0f;--bg2:#12121a;--bg3:#1a1a2e;--primary:#6c63ff;--primary-glow:rgba(108,99,255,.3);--accent:#00d2ff;--accent2:#7b2ff7;--green:#00e676;--red:#ff5252;--orange:#ffab40;--yellow:#ffd740;--text:#e8eaed;--text-dim:#8b8fa3;--text-bright:#fff;--border:rgba(108,99,255,.2);--g1:linear-gradient(135deg,#6c63ff,#00d2ff);--g2:linear-gradient(135deg,#7b2ff7,#6c63ff 50%,#00d2ff);--gold:#f5c842;--gold-glow:rgba(245,200,66,.25);--teal:#00bfa5;--flutter:#02569B;--next:#000;--go:#00ADD8}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--text);overflow:hidden;height:100vh;width:100vw}
+.deck{width:100vw;height:100vh;position:relative}
+.slide{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:50px 70px;opacity:0;transform:translateX(60px);transition:all .5s cubic-bezier(.22,1,.36,1);pointer-events:none;overflow-y:auto;overflow-x:hidden}
+.slide.active{opacity:1;transform:translateX(0);pointer-events:all}
+.slide.exit-left{opacity:0;transform:translateX(-60px)}
+h1{font-size:3.8rem;font-weight:900;letter-spacing:-2px;line-height:1.1;background:var(--g1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:18px}
+h2{font-size:2.4rem;font-weight:800;letter-spacing:-1px;line-height:1.2;color:var(--text-bright);margin-bottom:14px}
+h3{font-size:.8rem;font-weight:600;color:var(--accent);margin-bottom:10px;text-transform:uppercase;letter-spacing:2px}
+.subtitle{font-size:1.2rem;color:var(--text-dim);font-weight:400;max-width:750px;text-align:center;line-height:1.6}
+.section-label{position:absolute;top:36px;left:70px;font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:3px;color:var(--primary);opacity:.7}
+
+.terminal{background:#0d1117;border:1px solid #30363d;border-radius:11px;padding:22px 26px;font-family:'JetBrains Mono',monospace;font-size:.78rem;line-height:1.65;max-width:900px;width:100%;position:relative;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.terminal::before{content:'';position:absolute;top:0;left:0;right:0;height:34px;background:#161b22;border-bottom:1px solid #30363d;border-radius:11px 11px 0 0}
+.terminal::after{content:'\25CF  \25CF  \25CF';position:absolute;top:9px;left:14px;font-size:9px;letter-spacing:4px;color:#484f58}
+.terminal .content{margin-top:18px;position:relative}
+.cmd{color:var(--green)}.flag{color:var(--accent)}.string{color:#a5d6ff}.pass{color:var(--green);font-weight:700}.fail{color:var(--red);font-weight:700}.warn{color:var(--orange)}.dim{color:#484f58}.highlight{color:var(--yellow);font-weight:600}.prompt{color:#8b949e}.gold{color:var(--gold);font-weight:700}
+
+.card-grid{display:grid;gap:14px;width:100%;max-width:1100px}
+.cols-2{grid-template-columns:repeat(2,1fr)}.cols-3{grid-template-columns:repeat(3,1fr)}.cols-4{grid-template-columns:repeat(4,1fr)}.cols-5{grid-template-columns:repeat(5,1fr)}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:13px;padding:22px;transition:all .3s;cursor:default}
+.card:hover{border-color:var(--primary);transform:translateY(-3px);box-shadow:0 8px 30px var(--primary-glow)}
+.card .icon{font-size:1.6rem;margin-bottom:8px;display:block}
+.card .card-title{font-size:.95rem;font-weight:700;color:var(--text-bright);margin-bottom:5px}
+.card .card-desc{font-size:.78rem;color:var(--text-dim);line-height:1.5}
+.card.new-skill{border-color:var(--gold);background:rgba(245,200,66,.03)}
+.card.new-skill:hover{box-shadow:0 8px 30px var(--gold-glow)}
+.new-badge{display:inline-block;font-size:.5rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;padding:2px 7px;border-radius:4px;margin-left:6px;background:var(--gold);color:#000}
+
+.pipeline{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;max-width:1100px;margin-top:14px}
+.pipe-stage{padding:7px 12px;border-radius:6px;font-size:.65rem;font-weight:600;font-family:'JetBrains Mono',monospace;border:1px solid var(--border);background:var(--bg2);color:var(--text-dim);transition:all .3s;cursor:pointer}
+.pipe-stage.active-stage{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 4px 20px var(--primary-glow)}
+.pipe-stage.gate{border-color:var(--red);color:var(--red)}
+.pipe-stage.gate.active-stage{background:var(--red);color:#fff;border-color:var(--red)}
+.pipe-stage.done{background:rgba(0,230,118,.1);border-color:var(--green);color:var(--green)}
+.pipe-stage.new{border-color:var(--gold);color:var(--gold)}
+.pipe-stage.new.active-stage{background:var(--gold);color:#000;border-color:var(--gold)}
+.pipe-arrow{display:flex;align-items:center;color:var(--text-dim);font-size:.9rem}
+
+.stats{display:flex;gap:30px;margin-top:24px;flex-wrap:wrap;justify-content:center}
+.stat{text-align:center}
+.stat-value{font-size:2.2rem;font-weight:800;background:var(--g1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1}
+.stat-label{font-size:.7rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-top:3px}
+
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:32px;width:100%;max-width:1100px;align-items:start}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;width:100%;max-width:1100px;align-items:start}
+.col{display:flex;flex-direction:column;gap:12px}
+
+.data-table{width:100%;max-width:900px;border-collapse:separate;border-spacing:0;font-size:.78rem}
+.data-table th{text-align:left;padding:9px 12px;font-weight:600;color:var(--text-dim);text-transform:uppercase;font-size:.6rem;letter-spacing:1px;border-bottom:1px solid var(--border)}
+.data-table td{padding:10px 12px;border-bottom:1px solid rgba(108,99,255,.08);color:var(--text)}
+
+.badge{padding:2px 8px;border-radius:5px;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;display:inline-block}
+.badge.pass{background:rgba(0,230,118,.15);color:var(--green)}.badge.fail{background:rgba(255,82,82,.15);color:var(--red)}.badge.gate{background:rgba(255,82,82,.15);color:var(--red);border:1px solid rgba(255,82,82,.3)}.badge.mandatory{background:rgba(255,215,64,.15);color:var(--yellow)}.badge.info{background:rgba(0,210,255,.15);color:var(--accent)}.badge.new{background:var(--gold);color:#000}.badge.day1{background:rgba(0,191,165,.15);color:var(--teal)}
+
+.check-list{list-style:none;display:flex;flex-direction:column;gap:8px;max-width:800px}
+.check-list li{display:flex;align-items:flex-start;gap:9px;font-size:.9rem;line-height:1.5}
+.check-list .bullet{flex-shrink:0;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;margin-top:2px}
+.bullet.green{background:rgba(0,230,118,.15);color:var(--green)}.bullet.red{background:rgba(255,82,82,.15);color:var(--red)}.bullet.blue{background:rgba(108,99,255,.15);color:var(--primary)}.bullet.orange{background:rgba(255,171,64,.15);color:var(--orange)}.bullet.gold{background:rgba(245,200,66,.15);color:var(--gold)}
+
+.panel-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;width:100%;max-width:1100px}
+.panel-card{background:var(--bg2);border-radius:13px;padding:22px;border:1px solid var(--border);transition:all .3s}
+.panel-card:hover{transform:translateY(-3px);box-shadow:0 12px 40px rgba(0,0,0,.3)}
+.panel-card.architect{border-top:3px solid var(--primary)}.panel-card.security{border-top:3px solid var(--red)}.panel-card.staff{border-top:3px solid var(--orange)}
+.panel-card h4{font-size:.9rem;font-weight:700;margin-bottom:2px}
+.panel-card .role{font-size:.65rem;color:var(--text-dim);margin-bottom:12px}
+.panel-card .questions{list-style:none;display:flex;flex-direction:column;gap:6px}
+.panel-card .questions li{font-size:.72rem;color:var(--text-dim);padding-left:12px;position:relative;line-height:1.4}
+.panel-card .questions li::before{content:'?';position:absolute;left:0;font-weight:700}
+.panel-card.architect .questions li::before{color:var(--primary)}.panel-card.security .questions li::before{color:var(--red)}.panel-card.staff .questions li::before{color:var(--orange)}
+
+.verdict{display:inline-flex;align-items:center;gap:10px;padding:12px 24px;border-radius:11px;font-size:1.1rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;margin-top:14px}
+.verdict.pass-v{background:rgba(0,230,118,.1);border:2px solid var(--green);color:var(--green)}
+
+.health-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:500px;margin-top:12px}
+.health-card{padding:14px 16px;border-radius:9px;text-align:center}
+.health-card.h-green{background:rgba(0,230,118,.08);border:1px solid rgba(0,230,118,.3)}
+.health-card.h-yellow{background:rgba(255,215,64,.08);border:1px solid rgba(255,215,64,.3)}
+.health-card .h-label{font-size:.65rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px}
+.health-card .h-value{font-size:1.1rem;font-weight:800}
+.health-card.h-green .h-value{color:var(--green)}.health-card.h-yellow .h-value{color:var(--yellow)}
+
+/* Stack badges */
+.stack-badge{display:inline-block;padding:3px 8px;border-radius:5px;font-size:.6rem;font-weight:700;letter-spacing:.5px}
+.stack-go{background:rgba(0,173,216,.12);color:#00ADD8;border:1px solid rgba(0,173,216,.3)}
+.stack-next{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.2)}
+.stack-flutter{background:rgba(2,86,155,.12);color:#54C5F8;border:1px solid rgba(2,86,155,.3)}
+
+.nav{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;z-index:100;background:rgba(10,10,15,.92);backdrop-filter:blur(20px);padding:8px 18px;border-radius:12px;border:1px solid var(--border)}
+.nav-btn{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.nav-btn:hover{background:var(--primary);border-color:var(--primary);color:#fff}
+.nav-btn:disabled{opacity:.3;cursor:default}.nav-btn:disabled:hover{background:transparent;border-color:var(--border);color:var(--text)}
+.slide-counter{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--text-dim);min-width:50px;text-align:center}
+.nav-dots{display:flex;gap:4px}
+.nav-dot{width:6px;height:6px;border-radius:50%;background:var(--bg3);border:none;cursor:pointer;transition:all .3s}
+.nav-dot.active{background:var(--primary);transform:scale(1.4)}
+.nav-dot.section-dot{width:12px;border-radius:3px}
+
+.speaker-notes{position:fixed;bottom:70px;right:20px;max-width:280px;background:rgba(10,10,15,.95);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:10px;padding:12px 16px;font-size:.68rem;line-height:1.6;color:var(--text-dim);z-index:100;display:none;max-height:160px;overflow-y:auto}
+.speaker-notes.visible{display:block}
+.speaker-notes h5{font-size:.55rem;text-transform:uppercase;letter-spacing:2px;color:var(--primary);margin-bottom:5px}
+.notes-toggle{position:fixed;bottom:70px;right:20px;width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:rgba(10,10,15,.9);color:var(--text-dim);font-size:.7rem;cursor:pointer;z-index:101;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.notes-toggle:hover{color:var(--primary);border-color:var(--primary)}
+
+.bg-grid{position:absolute;top:0;left:0;right:0;bottom:0;background-image:linear-gradient(rgba(108,99,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(108,99,255,.03) 1px,transparent 1px);background-size:60px 60px;pointer-events:none}
+.bg-glow{position:absolute;width:500px;height:500px;border-radius:50%;filter:blur(120px);opacity:.1;pointer-events:none}
+.glow-1{background:var(--primary);top:-200px;right:-100px}.glow-2{background:var(--accent);bottom:-200px;left:-100px}.glow-3{background:var(--accent2);top:50%;left:50%;transform:translate(-50%,-50%)}.glow-gold{background:var(--gold);bottom:-100px;right:10%;opacity:.07}
+.key-hint{position:fixed;top:20px;right:20px;font-size:.6rem;color:var(--text-dim);opacity:.3;z-index:50;font-family:'JetBrains Mono',monospace}
+
+.fade-in{animation:fi .8s ease forwards}.fade-d1{animation:fi .8s ease .3s forwards;opacity:0}.fade-d2{animation:fi .8s ease .6s forwards;opacity:0}.fade-d3{animation:fi .8s ease .9s forwards;opacity:0}
+@keyframes fi{from{opacity:0}to{opacity:1}}
+@keyframes su{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+.slide-up{animation:su .7s ease forwards}
+
+.click-zone{cursor:pointer;transition:all .3s}.click-zone:hover{transform:scale(1.01);box-shadow:0 0 30px var(--primary-glow)}
+
+.overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.85);backdrop-filter:blur(10px);z-index:200;display:none;justify-content:center;align-items:center;padding:30px}
+.overlay.show{display:flex}
+.overlay-content{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:32px;max-width:800px;width:100%;max-height:80vh;overflow-y:auto;position:relative}
+.overlay-close{position:absolute;top:12px;right:12px;width:30px;height:30px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text-dim);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.overlay-close:hover{color:var(--red);border-color:var(--red)}
+
+@media(max-width:1000px){.slide{padding:30px 20px}h1{font-size:2.2rem}h2{font-size:1.6rem}.cols-4,.cols-5{grid-template-columns:repeat(2,1fr)}.panel-cards,.two-col,.three-col{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="key-hint">&larr;&rarr; Navigate &middot; N Notes &middot; F Fullscreen</div>
+<div class="deck" id="deck">
+
+<!-- S1: TITLE -->
+<div class="slide active" data-notes="Welcome. Today I'm showing DevPipeline v2 — 25 skills that take a problem statement and deliver a full-stack production system: Go backend, Next.js frontend, Flutter mobile, with Day 1 observability, DB optimization, analytics, executive reports, and AI-agent access. Let's build an AI Trading Engine.">
+  <div class="bg-grid"></div><div class="bg-glow glow-1"></div><div class="bg-glow glow-2"></div>
+  <h3 class="fade-in">Introducing</h3>
+  <h1 class="slide-up" style="font-size:4.2rem;">DevPipeline <span style="font-size:1.5rem;-webkit-text-fill-color:var(--gold);">v2</span></h1>
+  <p class="subtitle fade-d1">Problem Statement &rarr; Full Stack &rarr; Production &rarr; Day 1 Ops</p>
+  <div class="stats fade-d2">
+    <div class="stat"><div class="stat-value">25</div><div class="stat-label">Skills</div></div>
+    <div class="stat"><div class="stat-value">3</div><div class="stat-label">Stacks</div></div>
+    <div class="stat"><div class="stat-value">4</div><div class="stat-label">Gates</div></div>
+    <div class="stat"><div class="stat-value">44</div><div class="stat-label">Files</div></div>
+    <div class="stat"><div class="stat-value" style="background:linear-gradient(135deg,var(--gold),var(--orange));-webkit-background-clip:text;">7</div><div class="stat-label" style="color:var(--gold);">New in v2</div></div>
+  </div>
+  <div class="fade-d3" style="margin-top:24px;display:flex;gap:12px;">
+    <span class="stack-badge stack-go">Go Backend</span>
+    <span class="stack-badge stack-next">Next.js 15 Frontend</span>
+    <span class="stack-badge stack-flutter">Flutter Mobile</span>
+  </div>
+</div>
+
+<!-- S2: THE PROBLEM -->
+<div class="slide" data-notes="Building an AI trading system requires Go backend, React dashboard, Flutter mobile app, real-time WebSockets, ML inference, PostgreSQL optimization, Prometheus metrics, executive reporting. Most teams bolt half of this on after launch. We build it all in one pipeline.">
+  <div class="bg-grid"></div>
+  <span class="section-label">Act 1 &mdash; The Problem</span>
+  <h2>Shipping Code Is Only 40% of the Job</h2>
+  <p class="subtitle" style="margin-bottom:24px;">Frontend, mobile, observability, database tuning, data pipelines, executive reporting — usually afterthoughts.</p>
+  <div class="card-grid cols-4">
+    <div class="card"><span class="icon">&#x1f4cb;</span><div class="card-title">Backend Only</div><div class="card-desc">API ships. Frontend? "Next sprint." Mobile? "Maybe Q3."</div></div>
+    <div class="card"><span class="icon">&#x1f4c8;</span><div class="card-title">No Observability</div><div class="card-desc">No metrics. No SLOs. First alert = user complaint.</div></div>
+    <div class="card"><span class="icon">&#x1f5c4;</span><div class="card-title">DB Blind Spots</div><div class="card-desc">Slow queries found in prod. No connection pools. No monitoring.</div></div>
+    <div class="card"><span class="icon">&#x1f451;</span><div class="card-title">CTO Asks...</div><div class="card-desc">"How's the system?" No dashboard. No health scores. No reports.</div></div>
+  </div>
+</div>
+
+<!-- S3: FULL 25-SKILL PIPELINE -->
+<div class="slide" data-notes="25 skills organized into 7 categories. Planning, Building has 3 stacks now — Go, Next.js, Flutter. Testing across all stacks. Review. Deploy and Ops with 5 Day 1 skills. And Finish. Let me show the flow.">
+  <div class="bg-grid"></div>
+  <span class="section-label">Act 1 &mdash; The Full Pipeline</span>
+  <h2>25 Skills. 3 Stacks. Day 1 Ready.</h2>
+  <div class="pipeline" id="pipelineFlow">
+    <div class="pipe-stage active-stage">PRD</div><div class="pipe-arrow">&rarr;</div>
+    <div class="pipe-stage">Architect</div><div class="pipe-arrow">&rarr;</div>
+    <div class="pipe-stage">Sprint</div><div class="pipe-arrow">&rarr;</div>
+    <div class="pipe-stage gate">GRILL</div><div class="pipe-arrow">&rarr;</div>
+    <div class="pipe-stage">Develop</div><div class="pipe-arrow">&rarr;</div>
+    <div class="pipe-stage new">Frontend</div><div class="pipe-arrow">&rarr;</div>
+    <div class="pipe-stage new">Mobile</div><div class="pipe-arrow">&rarr;</div>
+    <div class="pipe-stage">TestGen</div><div class="pipe-arrow">&rarr;</div>
+    <div class="pipe-stage">TestRun</div><div class="pipe-arrow">&rarr;</div>
+    <div class="pipe-stage gate">Report</div><div class="pipe-arrow">&rarr;</div>
+    <div class="pipe-stage">Review</div><div class="pipe-arrow">&rarr;</div>
+    <div class="pipe-stage">PR</div><div class="pipe-arrow">&rarr;</div>
+    <div class="pipe-stage">QA</div><div class="pipe-arrow">&rarr;</div>
+    <div class="pipe-stage">DevOps</div><div class="pipe-arrow">&rarr;</div>
+    <div class="pipe-stage new">Metrics</div><div class="pipe-arrow">&rarr;</div>
+    <div class="pipe-stage new">DBA</div><div class="pipe-arrow">&rarr;</div>
+    <div class="pipe-stage new">Data</div><div class="pipe-arrow">&rarr;</div>
+    <div class="pipe-stage new">CXO</div><div class="pipe-arrow">&rarr;</div>
+    <div class="pipe-stage new">MCP</div><div class="pipe-arrow">&rarr;</div>
+    <div class="pipe-stage">Docs</div><div class="pipe-arrow">&rarr;</div>
+    <div class="pipe-stage">Release</div>
+  </div>
+  <div style="display:flex;gap:14px;margin-top:14px;font-size:.7rem;flex-wrap:wrap;justify-content:center;">
+    <span style="color:var(--primary);">&#9632; Stage</span>
+    <span style="color:var(--red);">&#9632; Gate</span>
+    <span style="color:var(--gold);">&#9632; NEW v2</span>
+    <span style="color:var(--green);">&#9632; Done</span>
+  </div>
+</div>
+
+<!-- S4: COMMAND TABLE -->
+<div class="slide" data-notes="Here's the full 25-command inventory with stack tags. Go backend is enforced by org standards. Next.js 15 with App Router, TanStack Query, Zustand. Flutter 3.19 with Riverpod 3.0, Freezed, GoRouter. Each has its own reference standards document.">
+  <div class="bg-grid"></div>
+  <span class="section-label">All 25 Commands</span>
+  <h2>Command Reference</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:1100px;width:100%;">
+    <table class="data-table" style="font-size:.72rem;">
+      <tr><th>#</th><th>Command</th><th>Role</th><th>Stack</th></tr>
+      <tr><td colspan="4" style="font-weight:700;font-size:.6rem;color:var(--text-dim);padding:6px 12px;">ORCHESTRATION</td></tr>
+      <tr><td>1</td><td><code style="color:var(--accent)">/pipe:run</code></td><td>Full orchestrator</td><td>&mdash;</td></tr>
+      <tr><td>2</td><td><code style="color:var(--accent)">/pipe:status</code></td><td>Dashboard</td><td>&mdash;</td></tr>
+      <tr><td colspan="4" style="font-weight:700;font-size:.6rem;color:var(--text-dim);padding:6px 12px;">PLANNING</td></tr>
+      <tr><td>3</td><td><code>/pipe:prd</code></td><td>Product Manager</td><td>&mdash;</td></tr>
+      <tr><td>4</td><td><code>/pipe:architect</code></td><td>Senior Architect</td><td>&mdash;</td></tr>
+      <tr><td>5</td><td><code>/pipe:sprint</code></td><td>Project Manager</td><td>&mdash;</td></tr>
+      <tr><td>6</td><td><code style="color:var(--red)">/pipe:grill</code></td><td>3-panel review</td><td><span class="badge gate">GATE</span></td></tr>
+      <tr><td colspan="4" style="font-weight:700;font-size:.6rem;color:var(--text-dim);padding:6px 12px;">BUILDING</td></tr>
+      <tr><td>7</td><td><code>/pipe:develop</code></td><td>Go backend</td><td><span class="stack-badge stack-go" style="font-size:.5rem;">Go</span></td></tr>
+      <tr><td>8</td><td><code style="color:var(--gold)">/pipe:frontend</code></td><td>React/Next.js</td><td><span class="stack-badge stack-next" style="font-size:.5rem;">Next.js 15</span> <span class="new-badge">New</span></td></tr>
+      <tr><td>9</td><td><code style="color:var(--gold)">/pipe:mobile</code></td><td>Flutter app</td><td><span class="stack-badge stack-flutter" style="font-size:.5rem;">Flutter</span> <span class="new-badge">New</span></td></tr>
+      <tr><td colspan="4" style="font-weight:700;font-size:.6rem;color:var(--text-dim);padding:6px 12px;">TESTING</td></tr>
+      <tr><td>10</td><td><code>/pipe:testgen</code></td><td>Generate tests</td><td><span class="badge mandatory">All stacks</span></td></tr>
+      <tr><td>11</td><td><code>/pipe:testrun</code></td><td>Run tests</td><td><span class="badge mandatory">All stacks</span></td></tr>
+      <tr><td>12</td><td><code style="color:var(--red)">/pipe:testreport</code></td><td>Test verdict</td><td><span class="badge gate">GATE</span></td></tr>
+    </table>
+    <table class="data-table" style="font-size:.72rem;">
+      <tr><th>#</th><th>Command</th><th>Role</th><th>Stack</th></tr>
+      <tr><td colspan="4" style="font-weight:700;font-size:.6rem;color:var(--text-dim);padding:6px 12px;">REVIEW</td></tr>
+      <tr><td>13</td><td><code>/pipe:review</code></td><td>Code review</td><td>All stacks</td></tr>
+      <tr><td>14</td><td><code>/pipe:pr</code></td><td>Pull request</td><td>&mdash;</td></tr>
+      <tr><td>15</td><td><code>/pipe:qa</code></td><td>QA engineer</td><td>&mdash;</td></tr>
+      <tr><td colspan="4" style="font-weight:700;font-size:.6rem;color:var(--text-dim);padding:6px 12px;">DEPLOY &amp; OPS</td></tr>
+      <tr><td>16</td><td><code>/pipe:devops</code></td><td>Docker, CI/CD</td><td>&mdash;</td></tr>
+      <tr><td>17</td><td><code style="color:var(--gold)">/pipe:metrics</code></td><td>Prometheus, SLOs</td><td><span class="badge new">Day 1</span></td></tr>
+      <tr><td>18</td><td><code style="color:var(--gold)">/pipe:dba</code></td><td>DB optimization</td><td><span class="badge new">Day 1</span></td></tr>
+      <tr><td>19</td><td><code style="color:var(--gold)">/pipe:datateam</code></td><td>Analytics layer</td><td><span class="badge new">Day 1</span></td></tr>
+      <tr><td>20</td><td><code style="color:var(--gold)">/pipe:cxo</code></td><td>Executive KPIs</td><td><span class="badge new">Day 1</span></td></tr>
+      <tr><td>21</td><td><code style="color:var(--gold)">/pipe:mcp</code></td><td>MCP server</td><td><span class="badge new">Auto</span></td></tr>
+      <tr><td colspan="4" style="font-weight:700;font-size:.6rem;color:var(--text-dim);padding:6px 12px;">FINISH</td></tr>
+      <tr><td>22</td><td><code>/pipe:docs</code></td><td>Tech writer</td><td>&mdash;</td></tr>
+      <tr><td>23</td><td><code>/pipe:release</code></td><td>Release manager</td><td>&mdash;</td></tr>
+      <tr><td>24</td><td><code>/pipe:fix</code></td><td>Bug fixer agent</td><td><span class="badge info">Agent</span></td></tr>
+      <tr><td>25</td><td><code>/pipe:autodoc</code></td><td>Auto-doc gen</td><td><span class="badge info">Hook</span></td></tr>
+    </table>
+  </div>
+  <div style="margin-top:14px;font-size:.75rem;color:var(--text-dim);">+ <strong>7 reference standards:</strong> go-standards.md &middot; nextjs-standards.md &middot; flutter-standards.md &middot; org-standards.md &middot; developer-checklist.md &middot; grill-questions.md &middot; test-coverage-matrix.md</div>
+</div>
+
+<!-- S5: DEMO START -->
+<div class="slide" data-notes="Let's build an AI-powered trading system. ML generates live buy/sell signals delivered via WebSocket and mobile push. Portfolio tracking with P&L. Risk management with position limits. Full stack — Go, Next.js dashboard, Flutter mobile app. One command.">
+  <div class="bg-grid"></div><div class="bg-glow glow-3"></div>
+  <span class="section-label">Act 2 &mdash; Live Demo</span>
+  <h2>Let's Build: AI Trading Engine</h2>
+  <div class="terminal click-zone" onclick="showOverlay('prd-detail')">
+    <div class="content">
+      <span class="prompt">$</span> <span class="cmd">/pipe:run</span> <span class="string">"Build an AI-powered trading system that generates live buy/sell<br>&nbsp;&nbsp;signals using ML and delivers them via WebSocket + mobile push.<br>&nbsp;&nbsp;Include portfolio tracking, P&amp;L analytics, risk management,<br>&nbsp;&nbsp;a Next.js admin dashboard, and a Flutter mobile app for traders."</span><br><br>
+      <span class="dim">&#x250c;&#x2500;</span> <span class="highlight">PRD &rarr; Architecture &rarr; Sprint &rarr; Grill...</span><br>
+      <span class="dim">&#x2502;</span> Domain: <span class="gold">Financial Trading / AI / Real-time / Full Stack</span><br>
+      <span class="dim">&#x2502;</span> <span class="pass">&#x2713;</span> 14 functional requirements (6 P0, 5 P1, 3 P2)<br>
+      <span class="dim">&#x2502;</span> <span class="pass">&#x2713;</span> 7 NFRs (latency &lt;50ms, 99.9% uptime)<br>
+      <span class="dim">&#x2502;</span> <span class="pass">&#x2713;</span> Architecture: Go + PostgreSQL + Redis + gRPC ML sidecar<br>
+      <span class="dim">&#x2502;</span> <span class="pass">&#x2713;</span> 3 sprints, 42 tasks planned<br>
+      <span class="dim">&#x2502;</span> <span class="pass">&#x2713;</span> Grill gate: PASS (after auto-fixing missing circuit breaker)<br>
+      <span class="dim">&#x2514;&#x2500;</span> <span class="pass">Ready to build across all 3 stacks</span>
+    </div>
+  </div>
+</div>
+
+<!-- S6: THREE STACKS -->
+<div class="slide" data-notes="This is the big new feature. Three build skills fire in sequence. Go backend with mandated checklist. Next.js 15 frontend with App Router, TanStack Query, Zustand, Tailwind. Flutter mobile with Riverpod, Freezed, GoRouter. Each has its own reference standards document enforcing best practices.">
+  <div class="bg-grid"></div><div class="bg-glow glow-gold"></div>
+  <span class="section-label">Act 3 &mdash; Full Stack Build</span>
+  <h2>Three Stacks. One Pipeline.</h2>
+  <div class="three-col">
+    <div class="card" style="border-top:3px solid #00ADD8;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+        <span style="font-size:1.4rem;">&#x1f40b;</span>
+        <div class="card-title" style="margin:0;font-size:1.1rem;">/pipe:develop</div>
+        <span class="stack-badge stack-go" style="font-size:.55rem;">Go</span>
+      </div>
+      <div class="card-desc" style="font-size:.82rem;">
+        <strong>Standards enforced:</strong> go-standards.md<br><br>
+        &#x2022; Clean architecture: cmd/ internal/ pkg/<br>
+        &#x2022; Interfaces for all external deps<br>
+        &#x2022; Context propagation everywhere<br>
+        &#x2022; Structured logging (zerolog)<br>
+        &#x2022; DI via constructor injection<br>
+        &#x2022; Table-driven tests<br>
+        &#x2022; Error wrapping with %w<br><br>
+        <span style="color:var(--text-dim);font-size:.75rem;">Signal engine, portfolio service, WebSocket gateway, REST API, risk manager</span>
+      </div>
+    </div>
+    <div class="card new-skill" style="border-top:3px solid #fff;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+        <span style="font-size:1.4rem;">&#x26a1;</span>
+        <div class="card-title" style="margin:0;font-size:1.1rem;">/pipe:frontend <span class="new-badge">New</span></div>
+        <span class="stack-badge stack-next" style="font-size:.55rem;">Next.js 15</span>
+      </div>
+      <div class="card-desc" style="font-size:.82rem;">
+        <strong>Standards enforced:</strong> nextjs-standards.md<br><br>
+        &#x2022; App Router (server components default)<br>
+        &#x2022; TanStack Query for data fetching<br>
+        &#x2022; Zustand for client state<br>
+        &#x2022; Tailwind CSS + CVA variants<br>
+        &#x2022; Zod for runtime validation<br>
+        &#x2022; Vitest + Testing Library<br>
+        &#x2022; 'use client' only when needed<br><br>
+        <span style="color:var(--text-dim);font-size:.75rem;">Admin dashboard, signal feed, portfolio view, real-time charts, risk panel</span>
+      </div>
+    </div>
+    <div class="card new-skill" style="border-top:3px solid #54C5F8;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+        <span style="font-size:1.4rem;">&#x1f4f1;</span>
+        <div class="card-title" style="margin:0;font-size:1.1rem;">/pipe:mobile <span class="new-badge">New</span></div>
+        <span class="stack-badge stack-flutter" style="font-size:.55rem;">Flutter 3.19</span>
+      </div>
+      <div class="card-desc" style="font-size:.82rem;">
+        <strong>Standards enforced:</strong> flutter-standards.md<br><br>
+        &#x2022; Clean architecture (domain/data/presentation)<br>
+        &#x2022; Riverpod 3.0 for state<br>
+        &#x2022; Freezed for immutable models<br>
+        &#x2022; GoRouter for navigation<br>
+        &#x2022; Dio + Retrofit for API<br>
+        &#x2022; Offline-first with local cache<br>
+        &#x2022; Golden tests for UI<br><br>
+        <span style="color:var(--text-dim);font-size:.75rem;">Trader app: live signals, push notifications, portfolio, P&L, quick trade</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- S7: GRILL GATE -->
+<div class="slide" data-notes="The grill is especially critical for trading. The security reviewer challenges API key rotation for programmatic traders. The staff engineer asks about the circuit breaker when the ML model goes haywire. Financial systems need extra scrutiny and the grill provides it.">
+  <div class="bg-grid"></div><div class="bg-glow glow-3"></div>
+  <span class="section-label">Act 3 &mdash; Grill Gate</span>
+  <h2 style="color:var(--red);">The Grill Gate &mdash; Trading System</h2>
+  <div class="panel-cards">
+    <div class="panel-card architect">
+      <h4 style="color:var(--primary);">&#x1f3db; Senior Architect</h4>
+      <div class="role">Latency, Data Model, Scale</div>
+      <ul class="questions">
+        <li>Can WS gateway handle 10K concurrent traders?</li>
+        <li>What if Redis pub/sub drops a signal?</li>
+        <li>Is the positions table correct for concurrent updates?</li>
+        <li>How do you guarantee &lt;50ms signal delivery?</li>
+      </ul>
+    </div>
+    <div class="panel-card security">
+      <h4 style="color:var(--red);">&#x1f6e1; Security Reviewer</h4>
+      <div class="role">Auth, Financial Data, Compliance</div>
+      <ul class="questions">
+        <li>API key rotation for trading clients?</li>
+        <li>Position data encrypted at rest?</li>
+        <li>Audit log on every trade action?</li>
+        <li>Rate limiting on signal subscription?</li>
+      </ul>
+    </div>
+    <div class="panel-card staff">
+      <h4 style="color:var(--orange);">&#x1f525; Staff Engineer</h4>
+      <div class="role">Risk, Circuit Breakers, Failures</div>
+      <ul class="questions">
+        <li>What if the ML model returns garbage?</li>
+        <li>Circuit breaker on max drawdown?</li>
+        <li>Rollback plan for bad signal deploy?</li>
+        <li>What happens during a flash crash?</li>
+      </ul>
+    </div>
+  </div>
+  <div class="verdict pass-v" style="font-size:.95rem;">&#x2713;&ensp;PASS &mdash; After adding drawdown circuit breaker</div>
+</div>
+
+<!-- S8: TESTING ACROSS STACKS -->
+<div class="slide" data-notes="Testing spans all 3 stacks. Go gets table-driven unit tests, integration tests for every endpoint, security tests for the trade API. Next.js gets Vitest component tests and accessibility checks. Flutter gets widget tests, golden tests, and integration tests. 186 total tests auto-generated.">
+  <div class="bg-grid"></div>
+  <span class="section-label">Act 4 &mdash; Testing All Stacks</span>
+  <h2>186 Tests Across 3 Stacks</h2>
+  <div class="three-col">
+    <div class="col">
+      <h3 style="color:#00ADD8;">Go Backend Tests</h3>
+      <table class="data-table" style="font-size:.72rem;">
+        <tr><th>Suite</th><th>#</th></tr>
+        <tr><td>Unit (table-driven)</td><td><strong>58</strong></td></tr>
+        <tr><td>Integration (API)</td><td><strong>32</strong></td></tr>
+        <tr><td>Security</td><td><strong>22</strong></td></tr>
+        <tr><td>Acceptance</td><td><strong>18</strong></td></tr>
+        <tr style="font-weight:700;"><td>Subtotal</td><td style="color:#00ADD8;">130</td></tr>
+      </table>
+    </div>
+    <div class="col">
+      <h3 style="color:#fff;">Next.js Frontend Tests</h3>
+      <table class="data-table" style="font-size:.72rem;">
+        <tr><th>Suite</th><th>#</th></tr>
+        <tr><td>Component (Vitest)</td><td><strong>18</strong></td></tr>
+        <tr><td>Hook tests</td><td><strong>8</strong></td></tr>
+        <tr><td>E2E (Playwright)</td><td><strong>6</strong></td></tr>
+        <tr><td>Accessibility</td><td><strong>4</strong></td></tr>
+        <tr style="font-weight:700;"><td>Subtotal</td><td style="color:#fff;">36</td></tr>
+      </table>
+    </div>
+    <div class="col">
+      <h3 style="color:#54C5F8;">Flutter Mobile Tests</h3>
+      <table class="data-table" style="font-size:.72rem;">
+        <tr><th>Suite</th><th>#</th></tr>
+        <tr><td>Widget tests</td><td><strong>8</strong></td></tr>
+        <tr><td>Golden tests</td><td><strong>4</strong></td></tr>
+        <tr><td>Integration</td><td><strong>5</strong></td></tr>
+        <tr><td>Provider tests</td><td><strong>3</strong></td></tr>
+        <tr style="font-weight:700;"><td>Subtotal</td><td style="color:#54C5F8;">20</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="verdict pass-v" style="margin-top:16px;font-size:.9rem;">&#x2713;&ensp;186/186 PASS &middot; Backend 91% &middot; Frontend 88% &middot; Mobile 85%</div>
+</div>
+
+<!-- S9: 7 NEW SKILLS -->
+<div class="slide" data-notes="7 new skills in v2. Frontend and Mobile for full-stack builds. Then 5 Day 1 ops skills: Metrics with Prometheus and Grafana. DBA for database optimization. Data Team for analytics events. CXO for executive dashboards. And MCP for AI-agent access. Let me show the ops layer in detail.">
+  <div class="bg-grid"></div><div class="bg-glow glow-gold"></div>
+  <span class="section-label">Act 5 &mdash; What's New in v2</span>
+  <h1 style="font-size:2.8rem;background:linear-gradient(135deg,var(--gold),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">7 New Skills</h1>
+  <p class="subtitle" style="margin-bottom:20px;">Full-stack builds + Day 1 operations</p>
+  <div class="card-grid cols-4" style="max-width:1100px;">
+    <div class="card new-skill"><span class="icon">&#x26a1;</span><div class="card-title">/pipe:frontend</div><div class="card-desc">Next.js 15 App Router, TanStack Query, Zustand, Tailwind, CVA, Zod, Vitest</div></div>
+    <div class="card new-skill"><span class="icon">&#x1f4f1;</span><div class="card-title">/pipe:mobile</div><div class="card-desc">Flutter 3.19, Riverpod 3.0, Freezed, GoRouter, Dio+Retrofit, offline-first</div></div>
+    <div class="card new-skill"><span class="icon">&#x1f4c8;</span><div class="card-title">/pipe:metrics</div><div class="card-desc">Prometheus, SLO definitions, 4 Grafana dashboards, SLO burn rate alerts</div></div>
+    <div class="card new-skill"><span class="icon">&#x1f5c4;</span><div class="card-title">/pipe:dba</div><div class="card-desc">Connection pools, slow queries, cache hit ratio, dead tuples, migration safety</div></div>
+    <div class="card new-skill"><span class="icon">&#x1f4ca;</span><div class="card-title">/pipe:datateam</div><div class="card-desc">Analytics events, materialized views, data quality checks, CSV/JSON exports</div></div>
+    <div class="card new-skill"><span class="icon">&#x1f451;</span><div class="card-title">/pipe:cxo</div><div class="card-desc">Portfolio P&L, Sharpe, drawdown, health scores (GREEN/YELLOW/RED), auto reports</div></div>
+    <div class="card new-skill"><span class="icon">&#x1f916;</span><div class="card-title">/pipe:mcp</div><div class="card-desc">Scans APIs, auto-generates MCP server — tools, resources, prompts for AI agents</div></div>
+    <div class="card" style="display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;">
+      <div style="font-size:2rem;font-weight:900;background:linear-gradient(135deg,var(--gold),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">+7</div>
+      <div style="font-size:.75rem;color:var(--text-dim);">Reference standards docs for Go, Next.js, Flutter</div>
+    </div>
+  </div>
+</div>
+
+<!-- S10: CXO + MCP -->
+<div class="slide" data-notes="The CXO skill generates executive-facing health scores and auto-reports. For our trading system: portfolio value, P&L, win rate, Sharpe ratio, max drawdown — all with GREEN/YELLOW/RED status. And the MCP skill makes the whole system accessible to AI agents from day 1.">
+  <div class="bg-grid"></div>
+  <span class="section-label">Act 5 &mdash; CXO + MCP</span>
+  <h2><span style="color:var(--gold);">&#x1f451;</span> Executive Layer + <span style="color:var(--gold);">&#x1f916;</span> AI Access</h2>
+  <div class="two-col">
+    <div class="col">
+      <h3>/pipe:cxo &mdash; Trading KPIs</h3>
+      <table class="data-table" style="font-size:.78rem;">
+        <tr><th>Metric</th><th>Value</th><th>Health</th></tr>
+        <tr><td>Portfolio Value</td><td>$2.4M</td><td><span class="badge pass">&#x2191; 3.2%</span></td></tr>
+        <tr><td>Daily P&L</td><td>+$18,420</td><td><span class="badge pass">GREEN</span></td></tr>
+        <tr><td>Win Rate</td><td>67.3%</td><td><span class="badge pass">GREEN</span></td></tr>
+        <tr><td>Sharpe Ratio</td><td>1.82</td><td><span class="badge pass">GREEN</span></td></tr>
+        <tr><td>Max Drawdown</td><td>-4.1%</td><td><span class="badge mandatory">YELLOW</span></td></tr>
+      </table>
+      <div style="font-size:.78rem;color:var(--text-dim);margin-top:8px;">Auto reports: daily, weekly, monthly</div>
+    </div>
+    <div class="col">
+      <h3>/pipe:mcp &mdash; AI-Agent Tools</h3>
+      <div class="terminal" style="font-size:.68rem;">
+        <div class="content">
+          <span class="highlight">Tools:</span><br>
+          &nbsp; <span class="pass">&#x2713;</span> create_signal &mdash; Generate trading signal<br>
+          &nbsp; <span class="pass">&#x2713;</span> get_portfolio &mdash; Positions + P&amp;L<br>
+          &nbsp; <span class="pass">&#x2713;</span> execute_trade &mdash; Open/close position<br>
+          &nbsp; <span class="pass">&#x2713;</span> get_risk_status &mdash; Risk limits<br><br>
+          <span class="highlight">Resources:</span><br>
+          &nbsp; <span class="pass">&#x2713;</span> live_positions &mdash; Real-time data<br>
+          &nbsp; <span class="pass">&#x2713;</span> system_health &mdash; SLO status<br><br>
+          <span class="highlight">Prompts:</span><br>
+          &nbsp; <span class="pass">&#x2713;</span> analyze_risk<br>
+          &nbsp; <span class="pass">&#x2713;</span> daily_summary
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- S11: FINAL DASHBOARD -->
+<div class="slide" data-notes="Final dashboard. All stages complete across all 3 stacks. 186 tests passing. Day 1 ops deployed: 4 Grafana dashboards, PostgreSQL monitoring, analytics events, executive reports, MCP server. Version 1.0.0. From problem statement to production full-stack system in one pipeline.">
+  <div class="bg-grid"></div>
+  <span class="section-label">Act 6 &mdash; Final Status</span>
+  <h2>All Green. Full Stack. Day 1.</h2>
+  <div class="terminal" style="max-width:780px;font-size:.7rem;">
+    <div class="content">
+      <span class="prompt">$</span> <span class="cmd">/pipe:status</span><br><br>
+      <span class="highlight">DEVPIPELINE DASHBOARD</span> &mdash; <span class="gold">AI Trading Engine v1.0.0</span><br>
+      <span class="dim">&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;</span><br>
+      <span class="pass">&#x2713;</span> PRD&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 14 requirements, 9 user stories<br>
+      <span class="pass">&#x2713;</span> Architecture&nbsp;&nbsp; Go + PostgreSQL + Redis, 4 ADRs<br>
+      <span class="pass">&#x2713;</span> Sprint Plan&nbsp;&nbsp;&nbsp; 3 sprints, 42 tasks<br>
+      <span class="pass">&#x2713;</span> Grill Gate&nbsp;&nbsp;&nbsp;&nbsp; PASS (standard, 1 revision)<br>
+      <span class="pass">&#x2713;</span> <span style="color:#00ADD8;">Go Backend</span>&nbsp;&nbsp;&nbsp;&nbsp; 5 services, cmd/internal/pkg<br>
+      <span class="gold">&#x2713;</span> <span class="gold">Next.js Frontend</span> Admin dashboard, signal feed, charts<br>
+      <span class="gold">&#x2713;</span> <span class="gold">Flutter Mobile</span>&nbsp; Trader app, push signals, offline-first<br>
+      <span class="pass">&#x2713;</span> Testing&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span class="pass">186/186</span> &mdash; Go 91% &middot; Next.js 88% &middot; Flutter 85%<br>
+      <span class="pass">&#x2713;</span> Code Review&nbsp;&nbsp;&nbsp; APPROVED (all stacks)<br>
+      <span class="pass">&#x2713;</span> PR + QA&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Merged, QA PASS<br>
+      <span class="pass">&#x2713;</span> DevOps&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Docker + CI/CD (all stacks)<br>
+      <span class="gold">&#x2713;</span> <span class="gold">Metrics</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4 Grafana dashboards, 3 SLOs, burn alerts<br>
+      <span class="gold">&#x2713;</span> <span class="gold">DBA</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; pgbouncer, slow query log, PG dashboard<br>
+      <span class="gold">&#x2713;</span> <span class="gold">Data Team</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 14 events, 6 materialized views<br>
+      <span class="gold">&#x2713;</span> <span class="gold">CXO</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Health: <span class="pass">GREEN</span> &middot; Sharpe: 1.82 &middot; Win: 67%<br>
+      <span class="gold">&#x2713;</span> <span class="gold">MCP Server</span>&nbsp;&nbsp;&nbsp;&nbsp; 5 tools, 3 resources, 2 prompts<br>
+      <span class="pass">&#x2713;</span> Documentation&nbsp; README + API docs + architecture<br>
+      <span class="pass">&#x2713;</span> Release&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span class="pass">v1.0.0</span><br>
+      <span class="dim">&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;</span><br>
+      Gates: <span class="pass">Grill &#x2713;</span> &middot; <span class="pass">Tests &#x2713;</span> &middot; <span class="pass">Review &#x2713;</span> &middot; <span class="pass">QA &#x2713;</span>
+    </div>
+  </div>
+</div>
+
+<!-- S12: KEY INSIGHT -->
+<div class="slide" data-notes="The key insight: we didn't just ship code — we shipped a complete system. Backend, frontend, mobile, tests, deployment, observability, database optimization, analytics, executive reports, and AI-agent access. All from one command. All on day 1.">
+  <div class="bg-grid"></div><div class="bg-glow glow-1"></div><div class="bg-glow glow-2"></div>
+  <span class="section-label">Key Insight</span>
+  <h1 style="font-size:2.8rem;max-width:800px;text-align:center;">Ship the System,<br>Not Just the Code</h1>
+  <p class="subtitle" style="margin-top:16px;max-width:680px;">
+    <span style="color:#00ADD8;">Go Backend</span> + <span style="color:#fff;">Next.js Dashboard</span> + <span style="color:#54C5F8;">Flutter App</span> +<br>
+    Tests + Review + Deployment +<br>
+    <span style="color:var(--gold);font-weight:600;">Metrics + DBA + Analytics + Executive Reports + MCP</span>
+  </p>
+  <div class="stats" style="margin-top:30px;">
+    <div class="stat"><div class="stat-value">25</div><div class="stat-label">Skills</div></div>
+    <div class="stat"><div class="stat-value">3</div><div class="stat-label">Stacks</div></div>
+    <div class="stat"><div class="stat-value">186</div><div class="stat-label">Tests</div></div>
+    <div class="stat"><div class="stat-value">0</div><div class="stat-label">Skipped</div></div>
+  </div>
+</div>
+
+<!-- S13: CLOSING -->
+<div class="slide" data-notes="That's DevPipeline v2. 25 skills, 3 stacks, 44 files, 7 reference standards. We just built an AI trading engine with Go backend, Next.js dashboard, Flutter mobile app, 186 tests, 4 Grafana dashboards, executive KPIs, and an MCP server. One command. Try it.">
+  <div class="bg-grid"></div><div class="bg-glow glow-3"></div>
+  <h3>Get Started</h3>
+  <h1 style="font-size:3.2rem;">One Command.<br>Full Stack.<br>Day 1 Ops.</h1>
+  <div class="terminal" style="margin-top:20px;max-width:700px;">
+    <div class="content" style="text-align:center;">
+      <span class="prompt">$</span> <span class="cmd">/pipe:run</span> <span class="string">"Build an AI trading system with live signals,<br>&nbsp;&nbsp;Next.js dashboard, and Flutter mobile app"</span>
+    </div>
+  </div>
+  <div class="stats" style="margin-top:30px;">
+    <div class="stat"><div class="stat-value">25</div><div class="stat-label">Skills</div></div>
+    <div class="stat"><div class="stat-value">3</div><div class="stat-label">Stacks</div></div>
+    <div class="stat"><div class="stat-value">44</div><div class="stat-label">Files</div></div>
+    <div class="stat"><div class="stat-value" style="background:linear-gradient(135deg,var(--gold),var(--orange));-webkit-background-clip:text;">7</div><div class="stat-label" style="color:var(--gold);">New v2</div></div>
+    <div class="stat"><div class="stat-value">1</div><div class="stat-label">Command</div></div>
+  </div>
+  <div style="margin-top:24px;display:flex;gap:10px;">
+    <span class="stack-badge stack-go">Go Backend</span>
+    <span class="stack-badge stack-next">Next.js 15</span>
+    <span class="stack-badge stack-flutter">Flutter 3.19</span>
+  </div>
+  <p style="margin-top:24px;color:var(--text-dim);font-size:.9rem;">
+    <strong style="color:var(--text-bright);">DevPipeline v2</strong> &mdash; A Claude Code Plugin<br>
+    <span style="font-size:.8rem;">Problem &rarr; Full Stack &rarr; Production &rarr; Day 1 Operations</span>
+  </p>
+</div>
+
+<!-- SLIDE 14: LinkedIn Post -->
+<div class="slide" data-notes="Here's the LinkedIn post you can share right now to announce DevPipeline v2. Copy it, add a screenshot of the demo, and post it.">
+  <div class="bg-grid"></div><div class="bg-glow glow-1"></div>
+  <div style="max-width:720px;width:100%;">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;">
+      <div style="width:44px;height:44px;border-radius:50%;background:var(--g1);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1.1rem;color:#fff;flex-shrink:0;">in</div>
+      <div>
+        <div style="font-weight:700;color:var(--text-bright);font-size:.95rem;">LinkedIn Post</div>
+        <div style="font-size:.75rem;color:var(--text-dim);">Ready to publish · DevPipeline v2 Launch</div>
+      </div>
+      <div style="margin-left:auto;background:linear-gradient(135deg,#0077b5,#00a0dc);color:#fff;font-size:.7rem;font-weight:700;padding:4px 12px;border-radius:20px;">POST</div>
+    </div>
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:24px 28px;font-size:.82rem;line-height:1.75;color:var(--text);max-height:70vh;overflow-y:auto;">
+      <p style="margin-bottom:10px;">Most engineers ship code. <strong style="color:var(--text-bright);">DevPipeline ships the entire system.</strong></p>
+      <p style="margin-bottom:10px;">Introducing <strong style="color:var(--primary);">DevPipeline v2</strong> — a Claude Code plugin with <strong style="color:var(--text-bright);">25 skills, 3 stacks, and Day 1 operations</strong> baked in from the very first command.</p>
+      <p style="margin-bottom:6px;color:var(--text-dim);">Here's the problem it solves:</p>
+      <p style="margin-bottom:10px;">Shipping code is only <strong style="color:var(--gold);">40% of the job.</strong></p>
+      <p style="margin-bottom:10px;color:var(--text-dim);font-size:.78rem;">Frontend gets pushed to "next sprint." Observability is an afterthought. Slow queries surface in prod. And when the CTO asks "how's the system?" — there's no dashboard, no health score, no answer.</p>
+      <p style="margin-bottom:14px;">DevPipeline v2 changes that.</p>
+      <div style="background:var(--bg3);border-left:3px solid var(--primary);padding:10px 14px;border-radius:0 8px 8px 0;margin-bottom:14px;font-family:'JetBrains Mono',monospace;font-size:.75rem;">
+        <span style="color:var(--text-dim);">$</span> <span style="color:var(--accent);">/pipe:run</span> <span style="color:var(--green);">"Build an AI trading system..."</span>
+      </div>
+      <p style="margin-bottom:8px;font-size:.78rem;color:var(--text-dim);">What happens next:</p>
+      <div style="font-size:.78rem;display:grid;gap:3px;margin-bottom:14px;">
+        <div>→ PRD drafted &nbsp;→ Architecture designed &nbsp;→ 42 tasks planned</div>
+        <div>→ Go backend + Next.js 15 + Flutter — <strong style="color:var(--text-bright);">built</strong></div>
+        <div>→ <strong style="color:var(--green);">186 tests ✅</strong> &nbsp;→ Docker + CI/CD deployed</div>
+        <div>→ Prometheus + SLOs + Grafana — live</div>
+        <div>→ CXO report: Sharpe 1.82 · Win Rate 67% · Health <span style="color:var(--green);">GREEN</span></div>
+        <div>→ MCP server auto-generated for AI-agent access</div>
+      </div>
+      <p style="margin-bottom:8px;font-size:.8rem;"><strong style="color:var(--text-bright);">7 new skills in v2:</strong></p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:.75rem;margin-bottom:14px;">
+        <div><span style="color:var(--primary);">/pipe:frontend</span> — Next.js 15</div>
+        <div><span style="color:var(--primary);">/pipe:mobile</span> — Flutter 3.19</div>
+        <div><span style="color:var(--primary);">/pipe:metrics</span> — Prometheus + SLOs</div>
+        <div><span style="color:var(--primary);">/pipe:dba</span> — DB optimization</div>
+        <div><span style="color:var(--primary);">/pipe:datateam</span> — Analytics layer</div>
+        <div><span style="color:var(--primary);">/pipe:cxo</span> — Executive KPIs</div>
+        <div style="grid-column:1/-1;"><span style="color:var(--primary);">/pipe:mcp</span> — Auto-generates MCP server from your APIs</div>
+      </div>
+      <div style="display:flex;gap:16px;font-size:.78rem;margin-bottom:14px;">
+        <span><strong style="color:var(--text-bright);">25</strong> <span style="color:var(--text-dim);">skills</span></span>
+        <span><strong style="color:var(--text-bright);">3</strong> <span style="color:var(--text-dim);">stacks</span></span>
+        <span><strong style="color:var(--text-bright);">44</strong> <span style="color:var(--text-dim);">files</span></span>
+        <span><strong style="color:var(--text-bright);">186</strong> <span style="color:var(--text-dim);">tests</span></span>
+        <span><strong style="color:var(--green);">0</strong> <span style="color:var(--text-dim);">skipped</span></span>
+      </div>
+      <div style="border-left:3px solid var(--gold);padding:8px 14px;background:rgba(245,200,66,.07);border-radius:0 8px 8px 0;margin-bottom:14px;font-style:italic;color:var(--gold);font-size:.82rem;">
+        "Ship the System, Not Just the Code."
+      </div>
+      <p style="color:var(--text-dim);font-size:.75rem;">#ClaudeCode #AI #SoftwareEngineering #DevTools #FullStack #BuildInPublic</p>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<!-- OVERLAYS -->
+<div class="overlay" id="overlay-prd-detail">
+  <div class="overlay-content">
+    <button class="overlay-close" onclick="hideOverlay()">&times;</button>
+    <h3 style="color:var(--primary);margin-bottom:12px;">AI Trading Engine &mdash; PRD Highlights</h3>
+    <ul class="check-list" style="font-size:.85rem;">
+      <li><span class="bullet blue">P0</span> <strong>Real-time signal generation</strong> &mdash; ML inference &lt;200ms, confidence scoring</li>
+      <li><span class="bullet blue">P0</span> <strong>WebSocket signal delivery</strong> &mdash; &lt;50ms to all connected traders</li>
+      <li><span class="bullet blue">P0</span> <strong>Portfolio tracking</strong> &mdash; Positions, P&L, unrealized gains</li>
+      <li><span class="bullet blue">P0</span> <strong>Risk management</strong> &mdash; Position limits, drawdown circuit breaker</li>
+      <li><span class="bullet blue">P0</span> <strong>Mobile push notifications</strong> &mdash; High-confidence signals to Flutter app</li>
+      <li><span class="bullet blue">P0</span> <strong>Admin dashboard</strong> &mdash; Next.js, model performance, signal accuracy</li>
+      <li><span class="bullet blue">P1</span> Signal history &amp; accuracy tracking</li>
+      <li><span class="bullet blue">P1</span> Backtesting framework</li>
+      <li><span class="bullet blue">P2</span> Multi-asset support</li>
+    </ul>
+    <div style="margin-top:14px;padding:12px;background:var(--bg3);border-radius:8px;font-size:.78rem;">
+      <strong>NFR:</strong> API P99 &lt;100ms &middot; 99.9% uptime &middot; Audit log all trades &middot; 10K concurrent WS &middot; Offline mobile support
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<div class="nav">
+  <button class="nav-btn" id="prevBtn" onclick="prev()" disabled>&#8592;</button>
+  <div class="nav-dots" id="navDots"></div>
+  <span class="slide-counter" id="slideCounter">1 / 14</span>
+  <button class="nav-btn" id="nextBtn" onclick="next()">&#8594;</button>
+</div>
+<button class="notes-toggle" id="notesToggle" onclick="toggleNotes()">N</button>
+<div class="speaker-notes" id="speakerNotes"><h5>Speaker Notes</h5><div id="notesContent"></div></div>
+
+<script>
+const slides=document.querySelectorAll('.slide'),totalSlides=slides.length;let current=0,notesVisible=false;
+const sections=[0,1,4,6,8,10,12];
+function buildDots(){const c=document.getElementById('navDots');for(let i=0;i<totalSlides;i++){const d=document.createElement('button');d.className='nav-dot'+(i===0?' active':'')+(sections.includes(i)?' section-dot':'');d.onclick=()=>goTo(i);c.appendChild(d);}}
+function goTo(n){if(n<0||n>=totalSlides||n===current)return;slides[current].classList.remove('active');slides[current].classList.add(n>current?'exit-left':'');const p=current;setTimeout(()=>{slides[p].classList.remove('exit-left');current=n;slides[current].classList.add('active');updateUI();},50);}
+function next(){goTo(current+1)}function prev(){goTo(current-1)}
+function updateUI(){document.getElementById('slideCounter').textContent=`${current+1} / ${totalSlides}`;document.getElementById('prevBtn').disabled=current===0;document.getElementById('nextBtn').disabled=current===totalSlides-1;document.querySelectorAll('.nav-dot').forEach((d,i)=>d.classList.toggle('active',i===current));const n=slides[current].getAttribute('data-notes')||'';document.getElementById('notesContent').textContent=n;if(current===2)animatePipeline();}
+function animatePipeline(){const s=document.querySelectorAll('#pipelineFlow .pipe-stage');s.forEach((st,i)=>{setTimeout(()=>{s.forEach(x=>{x.classList.remove('active-stage')});st.classList.add('active-stage');for(let j=0;j<i;j++){s[j].classList.add('done');s[j].classList.remove('active-stage')}},i*250)});}
+function toggleNotes(){notesVisible=!notesVisible;document.getElementById('speakerNotes').classList.toggle('visible',notesVisible);}
+function showOverlay(id){const el=document.getElementById('overlay-'+id);if(el)el.classList.add('show');}
+function hideOverlay(){document.querySelectorAll('.overlay').forEach(o=>o.classList.remove('show'));}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();next()}if(e.key==='ArrowLeft'){e.preventDefault();prev()}if(e.key==='Escape')hideOverlay();if((e.key==='n'||e.key==='N')&&!document.querySelector('.overlay.show'))toggleNotes();if(e.key==='f'||e.key==='F'){if(!document.fullscreenElement)document.documentElement.requestFullscreen();else document.exitFullscreen();}});
+let tx=0;document.addEventListener('touchstart',e=>{tx=e.touches[0].clientX});document.addEventListener('touchend',e=>{const d=tx-e.changedTouches[0].clientX;if(Math.abs(d)>50){d>0?next():prev()}});
+buildDots();updateUI();
+</script>
+</body>
+</html>
